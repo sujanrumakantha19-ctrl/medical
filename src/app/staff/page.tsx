@@ -66,12 +66,6 @@ export default function StaffDashboard() {
       if (patientsData.success) {
         setRecentPatients(patientsData.patients || []);
       }
-
-      setPriorityTasks([
-        { id: 1, task: 'Verify insurance for waiting patients', priority: 'high', due: 'Due now' },
-        { id: 2, task: 'Prepare files for next appointments', priority: 'high', due: 'Due in 30 mins' },
-        { id: 3, task: 'Confirm lab appointments', priority: 'medium', due: 'Due in 1 hour' },
-      ]);
     } catch (error) {
       console.error('Failed to fetch data:', error);
     } finally {
