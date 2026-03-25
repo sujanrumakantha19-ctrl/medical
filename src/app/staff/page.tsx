@@ -17,7 +17,6 @@ export default function StaffDashboard() {
   });
   const [appointments, setAppointments] = useState<any[]>([]);
   const [recentPatients, setRecentPatients] = useState<any[]>([]);
-  const [priorityTasks, setPriorityTasks] = useState<any[]>([]);
 
   useEffect(() => {
     checkAuth();
@@ -48,11 +47,15 @@ export default function StaffDashboard() {
       const patientsData = await patientsRes.json();
 
       if (dashboardData.success) {
+        const todayAppts = dashboardData.todayAppointmentsList || [];
+        const waitingCount = todayAppts.filter((a: any) => a.status === 'waiting').length;
+        const checkedInCount = todayAppts.filter((a: any) => a.status === 'checked-in').length;
+        
         setStats({
-          waitingPatients: 12,
-          todayAppointments: dashboardData.stats?.todayAppointments || 0,
-          checkInsToday: 18,
-          pendingTasks: 7,
+          waitingPatients: waitingCount,
+          todayAppointments: todayAppts.length,
+          checkInsToday: checkedInCount,
+          pendingTasks: dashboardData.stats?.pendingBills || 0,
         });
       }
 
@@ -85,15 +88,6 @@ export default function StaffDashboard() {
       case 'pending': return 'bg-yellow-100 text-yellow-700';
       case 'scheduled': return 'bg-gray-100 text-gray-700';
       default: return 'bg-gray-100 text-gray-700';
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'text-red-600 bg-red-50';
-      case 'medium': return 'text-yellow-600 bg-yellow-50';
-      case 'low': return 'text-green-600 bg-green-50';
-      default: return 'text-gray-600 bg-gray-50';
     }
   };
 
@@ -308,33 +302,6 @@ export default function StaffDashboard() {
         </div>
 
         <div className="space-y-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="p-6 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-gray-900">Priority Tasks</h2>
-            </div>
-            <div className="divide-y divide-gray-100">
-              {priorityTasks.map((task) => (
-                <div key={task.id} className="p-4 hover:bg-gray-50 transition-colors cursor-pointer">
-                  <div className="flex items-start gap-3">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${getPriorityColor(task.priority)}`}>
-                      {task.priority}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{task.task}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">{task.due}</p>
-                    </div>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); showToast('Task marked as done!', 'success'); }}
-                      className="p-1 text-gray-400 hover:text-green-600 transition-colors"
-                    >
-                      <span className="material-symbols-outlined text-lg">done</span>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-6 border-b border-gray-100">
               <h2 className="text-lg font-bold text-gray-900">Recent Patients</h2>
