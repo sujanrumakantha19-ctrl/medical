@@ -155,15 +155,12 @@ export default function AdminDashboard() {
           </p>
         </div>
         <div className="flex gap-3">
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-gray-400 text-sm pointer-events-none">calendar_month</span>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={handleDateChange}
-              className="bg-white border border-gray-200 pl-10 pr-4 py-2 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={handleDateChange}
+            className="bg-white border border-gray-200 px-4 py-2 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
           <button
             onClick={handleExportData}
             className="bg-primary text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-sm hover:opacity-90 transition-all flex items-center gap-2"
@@ -270,60 +267,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
-        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-          <h4 className="font-bold text-gray-900 tracking-tight">Department Overview</h4>
-          <span className="text-xs text-gray-500 flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-green-500"></span>
-            All systems nominal
-          </span>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="bg-gray-50 text-gray-500 text-[10px] uppercase font-bold tracking-widest">
-                <th className="px-6 py-4">Department</th>
-                <th className="px-6 py-4">Capacity</th>
-                <th className="px-6 py-4">Occupancy</th>
-                <th className="px-6 py-4">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 text-sm">
-              {(data?.departments || []).map((dept) => (
-                <tr key={dept.name} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 font-bold text-gray-900">{dept.name}</td>
-                  <td className="px-6 py-4 text-gray-600">{dept.capacity}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 h-1.5 bg-gray-100 rounded-full max-w-[80px]">
-                        <div 
-                          className={`h-full rounded-full ${dept.occupancy > 80 ? 'bg-red-500' : dept.occupancy > 60 ? 'bg-yellow-500' : 'bg-blue-500'}`} 
-                          style={{ width: `${dept.occupancy}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-xs font-medium">{dept.occupancy}%</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`text-[10px] font-bold px-3 py-1 rounded-full ${
-                      dept.occupancy > 80 ? 'bg-red-100 text-red-700' : 
-                      dept.occupancy > 60 ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-green-100 text-green-700'
-                    }`}>
-                      {dept.occupancy > 80 ? 'Critical' : dept.occupancy > 60 ? 'Busy' : 'Normal'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="p-4 bg-gray-50 text-center">
-          <button onClick={handleDownloadReport} className="text-xs font-bold text-blue-600 hover:underline">
-            Download Comprehensive Report
-          </button>
-        </div>
-      </div>
+
 
       <footer className="p-8 text-center border-t border-gray-200">
         <p className="text-[10px] text-gray-500 font-medium tracking-widest uppercase">

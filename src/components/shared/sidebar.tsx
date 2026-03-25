@@ -25,11 +25,11 @@ const navItems = [
     href: '/admin/appointments',
     icon: 'calendar_today',
   },
-  {
-    label: 'Analytics',
-    href: '/admin/analytics',
-    icon: 'monitoring',
-  },
+  // {
+  //   label: 'Analytics',
+  //   href: '/admin/analytics',
+  //   icon: 'monitoring',
+  // },
   {
     label: 'Settings',
     href: '/admin/settings',
@@ -83,13 +83,7 @@ export function Sidebar() {
           })}
         </nav>
 
-        <Link
-          href="/admin/staff/add"
-          className="w-full mt-4 bg-gradient-to-r from-primary to-primary-container text-white py-2.5 rounded-lg font-semibold text-sm shadow-sm hover:opacity-90 transition-all flex items-center justify-center gap-2"
-        >
-          <span className="material-symbols-outlined text-base">add</span>
-          Add New Staff
-        </Link>
+
       </div>
 
       <div className="p-4 border-t border-gray-200 space-y-0.5">
