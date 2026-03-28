@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
     
-    const { email, password } = await request.json();
+    const { email, password, keepSignedIn } = await request.json();
     
     if (!email || !password) {
       return authError('Email and password are required');
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     };
     
     const token = require('@/lib/auth').generateToken(userData);
-    await setAuthCookie(token);
+    await setAuthCookie(token, keepSignedIn);
     
     return NextResponse.json({
       success: true,

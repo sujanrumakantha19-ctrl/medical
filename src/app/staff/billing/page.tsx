@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/shared';
+import { FormattedDate } from '@/components/ui/formatted-date';
 
 interface BillingRecord {
   _id: string;
@@ -26,6 +27,7 @@ interface Patient {
   mrn: string;
   phone?: string;
   email?: string;
+  medicalHistory?: any[];
 }
 
 interface Payment {
@@ -64,7 +66,9 @@ export default function BillingPayments() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 10;
+  const [billingStats, setBillingStats] = useState({ outstanding: 0, collectedToday: 0, pendingCount: 0, overdueAmount: 0 });
 
   const [invoiceForm, setInvoiceForm] = useState({
     patientId: '',
@@ -77,26 +81,35 @@ export default function BillingPayments() {
 
   const [paymentAmount, setPaymentAmount] = useState('');
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, activeTab]);
-
   const fetchData = async () => {
     try {
       setIsLoading(true);
+      
+      const queryParams = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: itemsPerPage.toString(),
+      });
+      if (searchQuery) queryParams.append('search', searchQuery);
+      if (activeTab !== 'all') queryParams.append('status', activeTab);
+      
       const [billingRes, patientsRes] = await Promise.all([
-        fetch('/api/billing'),
+        fetch(`/api/billing?${queryParams.toString()}`),
         fetch('/api/patients'),
       ]);
 
       if (billingRes.ok) {
         const billingData = await billingRes.json();
-        setBillingRecords(billingData.billings || []);
-        setPayments(billingData.recentPayments || []);
+        setBillingRecords(billingData.bills || []);
+        if (billingData.stats) {
+          setBillingStats({
+            outstanding: billingData.stats.totalOutstanding || 0,
+            collectedToday: billingData.stats.totalCollected || 0,
+            pendingCount: billingData.stats.pendingCount || 0,
+            overdueAmount: billingData.stats.overdueAmount || 0,
+          });
+        }
+        if (billingData.pagination) setTotalPages(billingData.pagination.pages || 1);
+        if (billingData.recentPayments) setPayments(billingData.recentPayments);
       }
 
       if (patientsRes.ok) {
@@ -110,26 +123,20 @@ export default function BillingPayments() {
     }
   };
 
-  const billingStats = {
-    outstanding: billingRecords.filter(b => b.status === 'pending' || b.status === 'overdue').reduce((sum, b) => sum + (b.amount - (b.paidAmount || 0)), 0),
-    collectedToday: payments.filter(p => new Date(p.date).toDateString() === new Date().toDateString()).reduce((sum, p) => sum + p.amount, 0),
-    pendingCount: billingRecords.filter(b => b.status === 'pending').length,
-    overdueAmount: billingRecords.filter(b => b.status === 'overdue').reduce((sum, b) => sum + b.amount, 0),
-  };
+  useEffect(() => {
+    fetchData();
+  }, [currentPage, activeTab]);
 
-  const filteredBills = billingRecords.filter(bill => {
-    const matchesSearch = bill.patientName.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         bill.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         bill._id.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesTab = activeTab === 'all' || bill.status === activeTab;
-    return matchesSearch && matchesTab;
-  });
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setCurrentPage(1);
+      fetchData();
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
-  const totalPages = Math.ceil(filteredBills.length / itemsPerPage);
-  const paginatedBills = filteredBills.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const filteredBills = billingRecords;
+  const paginatedBills = billingRecords;
 
   const recentPayments = payments.slice(0, 5).map(p => ({
     id: p._id,
@@ -404,8 +411,8 @@ export default function BillingPayments() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{new Date(bill.date).toLocaleDateString()}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{new Date(bill.dueDate).toLocaleDateString()}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600"><FormattedDate date={bill.date} /></td>
+                      <td className="px-4 py-3 text-sm text-gray-600"><FormattedDate date={bill.dueDate} /></td>
                       <td className="px-4 py-3 text-sm font-semibold text-gray-900">{formatCurrency(bill.amount)}</td>
                       <td className="px-4 py-3">
                         <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium capitalize ${getStatusColor(bill.status)}`}>
@@ -896,11 +903,11 @@ export default function BillingPayments() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Date Issued</span>
-                  <span className="font-medium">{new Date(selectedBill.date).toLocaleDateString()}</span>
+                  <span className="font-medium"><FormattedDate date={selectedBill.date} /></span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Due Date</span>
-                  <span className="font-medium">{new Date(selectedBill.dueDate).toLocaleDateString()}</span>
+                  <span className="font-medium"><FormattedDate date={selectedBill.dueDate} /></span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Patient</span>

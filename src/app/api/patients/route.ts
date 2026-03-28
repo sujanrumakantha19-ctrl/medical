@@ -5,7 +5,7 @@ import { requireAuth, generateMRN } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
-    const authResult = await requireAuth(['admin', 'staff', 'doctor', 'nurse']);
+    const authResult = await requireAuth(['admin', 'staff', 'doctor', 'nurse', 'medical']);
     if (authResult instanceof NextResponse) return authResult;
 
     await connectDB();

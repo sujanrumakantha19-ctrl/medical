@@ -3,13 +3,23 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useClickOutside } from '@/hooks/useClickOutside';
 
-function ProfileDropdown({ onClose }: { onClose: () => void }) {
+function ProfileDropdown({ user, onClose }: { user: any; onClose: () => void }) {
   const router = useRouter();
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    router.push('/login');
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      router.push('/login');
+    }
+  };
+
+  const getInitials = (name: string) => {
+    return name?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'A';
   };
 
   return (
@@ -17,19 +27,19 @@ function ProfileDropdown({ onClose }: { onClose: () => void }) {
       <div className="bg-gradient-to-r from-blue-800 to-blue-600 p-5 text-white">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-lg font-bold">
-            AU
+            {getInitials(user?.name)}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-bold text-base truncate">Admin User</p>
-            <p className="text-blue-100 text-xs truncate">admin@clinicalsanctuary.org</p>
+            <p className="font-bold text-base truncate">{user?.name || 'Admin User'}</p>
+            <p className="text-blue-100 text-xs truncate">{user?.email || 'admin@clinicalsanctuary.org'}</p>
           </div>
         </div>
       </div>
 
       <div className="p-3 border-b border-gray-100">
         <div className="flex items-center gap-2 text-xs text-gray-500">
-          <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-full font-semibold">Administrator</span>
-          <span className="px-2 py-1 bg-gray-100 rounded-full">ID: SH-001</span>
+          <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-full font-semibold capitalize">{user?.role || 'Administrator'}</span>
+          <span className="px-2 py-1 bg-gray-100 rounded-full font-medium">{user?.department || 'System'}</span>
         </div>
       </div>
 
@@ -74,18 +84,28 @@ function ProfileDropdown({ onClose }: { onClose: () => void }) {
 }
 
 export function TopBar() {
+  const [user, setUser] = useState<any>(null);
   const [showProfile, setShowProfile] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowProfile(false);
+    const fetchSession = async () => {
+      try {
+        const res = await fetch('/api/auth/session');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.user) {
+            setUser(data.user);
+          }
+        }
+      } catch (e) {
+        console.error('Failed to fetch session', e);
       }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    };
+    fetchSession();
   }, []);
+
+  useClickOutside(dropdownRef, () => setShowProfile(false));
 
   return (
     <header className="h-[60px] bg-white border-b border-gray-200 sticky top-0 z-40">
@@ -112,15 +132,15 @@ export function TopBar() {
               className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 px-2 py-1.5 rounded-lg transition-colors"
             >
               <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm">
-                AU
+                {user?.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'A'}
               </div>
               <div className="text-left hidden sm:block">
-                <p className="text-sm font-bold text-gray-900 leading-tight">Admin User</p>
-                <p className="text-[11px] text-gray-500 leading-tight">System Chief</p>
+                <p className="text-sm font-bold text-gray-900 leading-tight">{user?.name || 'Admin User'}</p>
+                <p className="text-[11px] text-gray-500 leading-tight capitalize">{user?.role || 'Admin'}</p>
               </div>
               <span className="material-symbols-outlined text-gray-400 text-lg">expand_more</span>
             </button>
-            {showProfile && <ProfileDropdown onClose={() => setShowProfile(false)} />}
+            {showProfile && <ProfileDropdown user={user} onClose={() => setShowProfile(false)} />}
           </div>
         </div>
       </div>

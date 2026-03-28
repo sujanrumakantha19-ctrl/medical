@@ -5,7 +5,7 @@ import { requireAuth, hashPassword, generateEmployeeId } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
-    const authResult = await requireAuth(['admin']);
+    const authResult = await requireAuth(['admin', 'staff', 'doctor', 'medical']);
     if (authResult instanceof NextResponse) return authResult;
 
     await connectDB();

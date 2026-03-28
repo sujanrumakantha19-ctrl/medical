@@ -50,13 +50,15 @@ export async function getAuthUser(): Promise<AuthUser | null> {
   return verifyToken(token);
 }
 
-export async function setAuthCookie(token: string) {
+export async function setAuthCookie(token: string, keepSignedIn = false) {
   const cookieStore = await cookies();
+  const maxAge = 60 * 60 * 24 * 7; // 7 days
+  
   cookieStore.set('auth_token', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7, // 7 days
+    ...(keepSignedIn ? { maxAge } : {}),
     path: '/',
   });
 }

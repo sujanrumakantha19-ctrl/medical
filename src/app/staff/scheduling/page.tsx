@@ -27,6 +27,7 @@ interface Patient {
   lastName?: string;
   name?: string;
   mrn: string;
+  medicalHistory?: any[];
 }
 
 const getPatientDisplayName = (patient: Patient) => {
@@ -91,7 +92,7 @@ export default function AppointmentScheduling() {
 
       if (staffRes.ok) {
         const staffData = await staffRes.json();
-        setDoctors(staffData.staff || []);
+        setDoctors((staffData.staff || []).filter((s: any) => s.role === 'doctor'));
       }
 
       if (patientsRes.ok) {

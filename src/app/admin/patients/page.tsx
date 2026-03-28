@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/shared/toast';
+import { FormattedDate } from '@/components/ui/formatted-date';
 
 export default function PatientsPage() {
   const { showToast } = useToast();
@@ -129,6 +130,7 @@ export default function PatientsPage() {
                 className="w-full bg-white border border-gray-200 rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Search by name, phone, or MRN..."
                 type="text"
+                aria-label="Search patients by name, phone, or MRN"
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setPagination(p => ({ ...p, page: 1 })); }}
               />
@@ -207,7 +209,7 @@ export default function PatientsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <p className="text-xs text-gray-500">
-                        {new Date(patient.createdAt).toLocaleDateString()}
+                        <FormattedDate date={patient.createdAt} />
                       </p>
                     </td>
                     <td className="px-6 py-4">

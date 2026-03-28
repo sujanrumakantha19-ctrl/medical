@@ -13,6 +13,16 @@ export interface IPatient extends Document {
   status: 'admitted' | 'discharged' | 'outpatient' | 'emergency';
   assignedDoctor?: mongoose.Types.ObjectId;
   department: string;
+  mrn?: string;
+  medicalHistory?: Array<{
+    diagnosis: string;
+    treatment?: string;
+    notes?: string;
+    visitType?: string;
+    prescriptions?: string;
+    followUpDate?: Date;
+    date: Date;
+  }>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -39,6 +49,16 @@ const PatientSchema: Schema = new Schema(
     },
     assignedDoctor: { type: Schema.Types.ObjectId, ref: 'User' },
     department: { type: String, required: true },
+    mrn: { type: String },
+    medicalHistory: [{
+      diagnosis: { type: String, required: true },
+      treatment: { type: String },
+      notes: { type: String },
+      visitType: { type: String },
+      prescriptions: { type: String },
+      followUpDate: { type: Date },
+      date: { type: Date, default: Date.now },
+    }],
   },
   { timestamps: true }
 );

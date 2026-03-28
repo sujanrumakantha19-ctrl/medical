@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status') || '';
     const date = searchParams.get('date') || '';
     const doctorId = searchParams.get('doctorId') || '';
+    const patientId = searchParams.get('patientId') || '';
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
 
@@ -33,6 +34,10 @@ export async function GET(request: NextRequest) {
 
     if (doctorId) {
       query.doctorId = doctorId;
+    }
+
+    if (patientId) {
+      query.patientId = patientId;
     }
 
     if (search) {
@@ -81,12 +86,15 @@ export async function POST(request: NextRequest) {
     const data = await request.json();
 
     // Validation
-    if (!data.patientId || !data.doctorId || !data.date || !data.time || !data.type || !data.reason) {
+    if (!data.patientId || !data.doctorId || !data.date || !data.time || !data.type) {
       return NextResponse.json(
-        { error: 'Patient, doctor, date, time, type, and reason are required' },
+        { error: 'Patient, doctor, date, time, and type are required' },
         { status: 400 }
       );
     }
+
+    // Handle notes/reason
+    data.notes = data.notes || data.reason || '';
 
     // Parse date if string
     if (typeof data.date === 'string') {

@@ -5,31 +5,18 @@ import Link from 'next/link';
 import { useToast } from '@/components/shared/toast';
 import { useClickOutside } from '@/hooks/useClickOutside';
 
-export default function StaffManagementPage() {
+export default function DoctorsPage() {
   const { showToast } = useToast();
   const [staff, setStaff] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [roleFilter, setRoleFilter] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('');
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const [showAddDropdown, setShowAddDropdown] = useState(false);
-  const addDropdownRef = useRef<HTMLDivElement>(null);
-
-  useClickOutside(addDropdownRef, () => setShowAddDropdown(false));
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const role = params.get('role');
-    if (role) {
-      setRoleFilter(role);
-    }
-  }, []);
 
   useEffect(() => {
     fetchStaff();
-  }, [pagination.page, roleFilter, departmentFilter, searchTerm]);
+  }, [pagination.page, departmentFilter, searchTerm]);
 
   const fetchStaff = async () => {
     try {
@@ -37,9 +24,9 @@ export default function StaffManagementPage() {
       const params = new URLSearchParams({
         page: pagination.page.toString(),
         limit: '10',
+        role: 'doctor',
       });
       if (searchTerm) params.append('search', searchTerm);
-      if (roleFilter) params.append('role', roleFilter);
       if (departmentFilter) params.append('department', departmentFilter);
 
       const response = await fetch(`/api/staff?${params}`);
@@ -54,28 +41,28 @@ export default function StaffManagementPage() {
         });
       }
     } catch (error) {
-      console.error('Failed to fetch staff:', error);
-      showToast('Failed to load staff data', 'error');
+      console.error('Failed to fetch doctors:', error);
+      showToast('Failed to load doctors data', 'error');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this staff member?')) return;
+    if (!confirm('Are you sure you want to delete this doctor?')) return;
 
     try {
       const response = await fetch(`/api/staff/${id}`, { method: 'DELETE' });
       const data = await response.json();
 
       if (data.success) {
-        showToast(data.message || 'Staff member deleted', 'success');
+        showToast(data.message || 'Doctor deleted', 'success');
         fetchStaff();
       } else {
         showToast(data.error || 'Failed to delete', 'error');
       }
     } catch (error) {
-      showToast('Failed to delete staff member', 'error');
+      showToast('Failed to delete doctor', 'error');
     }
     setOpenDropdown(null);
   };
@@ -84,76 +71,23 @@ export default function StaffManagementPage() {
     return name?.split(' ').map(n => n[0]).join('').toUpperCase() || '??';
   };
 
-  const getRoleBadgeColor = (role: string) => {
-    switch (role) {
-      case 'admin': return 'bg-purple-100 text-purple-700';
-      case 'doctor': return 'bg-blue-100 text-blue-700';
-      case 'nurse': return 'bg-green-100 text-green-700';
-      case 'medical': return 'bg-teal-100 text-teal-700';
-      case 'staff': return 'bg-gray-100 text-gray-700';
-      default: return 'bg-gray-100 text-gray-700';
-    }
-  };
-
-  const departments = ['General Medicine', 'Cardiology', 'Pediatrics', 'Orthopedics', 'Neurology', 'Emergency', 'Reception', 'Administration'];
+  const departments = ['General Medicine', 'Cardiology', 'Pediatrics', 'Orthopedics', 'Neurology', 'Emergency', 'Radiology', 'Laboratory'];
 
   return (
     <section className="p-8 max-w-7xl mx-auto w-full space-y-8">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h2 className="text-4xl font-extrabold tracking-tight text-gray-900 mb-2">Staff Directory</h2>
-          <p className="text-gray-600 max-w-md">Manage medical professionals, administrative staff, and facility operations.</p>
+          <h2 className="text-4xl font-extrabold tracking-tight text-gray-900 mb-2">Doctors</h2>
+          <p className="text-gray-600 max-w-md">Manage doctors and medical staff.</p>
         </div>
         <div className="flex items-center gap-3">
-          <button 
-            onClick={() => showToast('Exporting staff data...', 'info')}
-            className="flex items-center gap-2 px-4 py-2 bg-white text-gray-700 font-semibold text-sm rounded-lg shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
+          <Link 
+            href="/admin/doctors/add"
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-white font-semibold text-sm rounded-lg shadow-sm hover:bg-primary/90 transition-colors"
           >
-            <span className="material-symbols-outlined text-lg">download</span>
-            Export
-          </button>
-          <div className="relative" ref={addDropdownRef}>
-            <button 
-              onClick={() => setShowAddDropdown(!showAddDropdown)}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-white font-semibold text-sm rounded-lg shadow-sm hover:bg-primary/90 transition-colors"
-            >
-              <span className="material-symbols-outlined text-lg">add</span>
-              Add Staff
-              <span className="material-symbols-outlined text-lg">expand_more</span>
-            </button>
-            {showAddDropdown && (
-              <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-lg border border-gray-100 py-2 min-w-[180px] z-10">
-                <Link 
-                  href="/admin/staff/add"
-                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-base text-gray-400">person</span>
-                  Add Staff
-                </Link>
-                <Link 
-                  href="/admin/staff/add?type=admin"
-                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-base text-gray-400">admin_panel_settings</span>
-                  Add Admin
-                </Link>
-                <Link 
-                  href="/admin/staff/add?type=doctor"
-                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-base text-gray-400">local_hospital</span>
-                  Add Doctor
-                </Link>
-                <Link 
-                  href="/admin/staff/add?type=medical"
-                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-base text-gray-400">medication</span>
-                  Add Medical
-                </Link>
-              </div>
-            )}
-          </div>
+            <span className="material-symbols-outlined text-lg">add</span>
+            Add Doctor
+          </Link>
         </div>
       </div>
 
@@ -164,9 +98,9 @@ export default function StaffManagementPage() {
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">search</span>
               <input
                 className="w-full bg-white border border-gray-200 rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Search by name, email, or ID..."
+                placeholder="Search by name, email..."
                 type="text"
-                aria-label="Search staff by name, email, or ID"
+                aria-label="Search doctors by name or email"
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setPagination(p => ({ ...p, page: 1 })); }}
               />
@@ -181,38 +115,26 @@ export default function StaffManagementPage() {
                 <option key={dept} value={dept}>{dept}</option>
               ))}
             </select>
-              <select
-              className="bg-white border border-gray-200 rounded-lg text-sm px-4 py-2"
-              value={roleFilter}
-              onChange={(e) => { setRoleFilter(e.target.value); setPagination(p => ({ ...p, page: 1 })); }}
-            >
-              <option value="">All Roles</option>
-              <option value="admin">Admin</option>
-              <option value="doctor">Doctor</option>
-              <option value="medical">Medical</option>
-              <option value="staff">Staff</option>
-            </select>
           </div>
-          <p className="text-xs font-medium text-gray-500">Showing {staff.length} of {pagination.total} staff</p>
+          <p className="text-xs font-medium text-gray-500">Showing {staff.length} of {pagination.total} doctors</p>
         </div>
 
         <div className="overflow-x-auto">
           {loading ? (
             <div className="p-8 text-center">
               <span className="material-symbols-outlined text-4xl text-gray-300 animate-spin">progress_activity</span>
-              <p className="text-gray-500 mt-2">Loading staff...</p>
+              <p className="text-gray-500 mt-2">Loading doctors...</p>
             </div>
           ) : staff.length === 0 ? (
             <div className="p-8 text-center">
               <span className="material-symbols-outlined text-4xl text-gray-300">person_off</span>
-              <p className="text-gray-500 mt-2">No staff members found</p>
+              <p className="text-gray-500 mt-2">No doctors found</p>
             </div>
           ) : (
             <table className="w-full text-left">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-600">Staff Member</th>
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-600">Role</th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-600">Doctor</th>
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-600">Department</th>
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-600">Contact</th>
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-600">Status</th>
@@ -228,15 +150,10 @@ export default function StaffManagementPage() {
                           {getInitials(member.name)}
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-gray-900">{member.name}</p>
+                          <p className="text-sm font-bold text-gray-900">Dr. {member.name}</p>
                           <p className="text-xs text-gray-500">ID: #{member.employeeId}</p>
                         </div>
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex px-2 py-1 rounded text-xs font-bold capitalize ${getRoleBadgeColor(member.role)}`}>
-                        {member.role}
-                      </span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-xs font-bold bg-gray-100 text-gray-700 px-2 py-1 rounded">
@@ -264,21 +181,6 @@ export default function StaffManagementPage() {
                       </button>
                       {openDropdown === member._id && (
                         <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-lg border border-gray-100 py-2 min-w-[180px] z-10">
-                          <Link 
-                            href={`/admin/staff/${member._id}`}
-                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                          >
-                            <span className="material-symbols-outlined text-base text-gray-400">visibility</span>
-                            View Profile
-                          </Link>
-                          <Link 
-                            href={`/admin/staff/add?id=${member._id}`}
-                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                          >
-                            <span className="material-symbols-outlined text-base text-gray-400">edit</span>
-                            Edit Staff
-                          </Link>
-                          <div className="border-t border-gray-100 my-1"></div>
                           <button 
                             onClick={() => handleDelete(member._id)}
                             className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
@@ -301,47 +203,21 @@ export default function StaffManagementPage() {
             <button
               onClick={() => setPagination(p => ({ ...p, page: Math.max(1, p.page - 1) }))}
               disabled={pagination.page === 1}
-              className="px-3 py-1 rounded-lg text-sm font-medium hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-1 rounded-lg text-sm font-medium hover:bg-gray-100 disabled:opacity-50"
             >
               <span className="material-symbols-outlined text-sm">chevron_left</span>
             </button>
-            {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => {
-              let pageNum;
-              if (pagination.pages <= 5) {
-                pageNum = i + 1;
-              } else if (pagination.page <= 3) {
-                pageNum = i + 1;
-              } else if (pagination.page >= pagination.pages - 2) {
-                pageNum = pagination.pages - 4 + i;
-              } else {
-                pageNum = pagination.page - 2 + i;
-              }
-              return (
-                <button
-                  key={pageNum}
-                  onClick={() => setPagination(p => ({ ...p, page: pageNum }))}
-                  className={`w-8 h-8 rounded-lg text-sm font-medium ${
-                    pagination.page === pageNum ? 'bg-blue-600 text-white' : 'hover:bg-gray-100 text-gray-700'
-                  }`}
-                >
-                  {pageNum}
-                </button>
-              );
-            })}
+            <span className="text-sm text-gray-600">Page {pagination.page} of {pagination.pages}</span>
             <button
               onClick={() => setPagination(p => ({ ...p, page: Math.min(p.pages, p.page + 1) }))}
               disabled={pagination.page === pagination.pages}
-              className="px-3 py-1 rounded-lg text-sm font-medium hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-1 rounded-lg text-sm font-medium hover:bg-gray-100 disabled:opacity-50"
             >
               <span className="material-symbols-outlined text-sm">chevron_right</span>
             </button>
           </div>
         )}
       </div>
-
-      <footer className="mt-auto py-8 px-8 text-center text-xs text-gray-500 border-t border-gray-100">
-        <p>© 2026 Clinical Sanctuary. Hospital Management Information System v1.0</p>
-      </footer>
     </section>
   );
 }

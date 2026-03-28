@@ -1,41 +1,22 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/shared';
 
-function AddStaffContent() {
+export default function AddDoctorPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { showToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [pageTitle, setPageTitle] = useState('Add Staff');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    role: 'staff',
-    department: '',
     phone: '',
+    department: 'General Medicine',
     password: '',
     confirmPassword: '',
   });
-
-  useEffect(() => {
-    const type = searchParams.get('type');
-    if (type === 'doctor') {
-      setFormData(prev => ({ ...prev, role: 'doctor', department: 'General Medicine' }));
-      setPageTitle('Add Doctor');
-    } else if (type === 'admin') {
-      setFormData(prev => ({ ...prev, role: 'admin', department: 'Administration' }));
-      setPageTitle('Add Admin');
-    } else if (type === 'medical') {
-      setFormData(prev => ({ ...prev, role: 'medical', department: 'Pharmacy' }));
-      setPageTitle('Add Medical Staff');
-    } else {
-      setPageTitle('Add Staff');
-    }
-  }, [searchParams]);
 
   const departments = [
     'General Medicine',
@@ -46,19 +27,7 @@ function AddStaffContent() {
     'Emergency',
     'Radiology',
     'Laboratory',
-    'Administration',
-    'Reception',
   ];
-
-  const getDepartmentsForRole = () => {
-    if (formData.role === 'doctor') {
-      return departments.filter(d => !['Administration', 'Reception'].includes(d));
-    }
-    if (formData.role === 'medical') {
-      return ['Pharmacy', 'Dispensary', 'Medical Store'];
-    }
-    return ['Administration', 'Reception'];
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,22 +51,22 @@ function AddStaffContent() {
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
-          role: formData.role,
           phone: formData.phone,
+          role: 'doctor',
+          department: formData.department,
           password: formData.password,
-          department: formData.department || (formData.role === 'admin' ? 'Administration' : 'Reception'),
         }),
       });
 
       if (response.ok) {
-        showToast(`${formData.role === 'doctor' ? 'Doctor' : 'Staff'} added successfully!`, 'success');
-        router.push(formData.role === 'doctor' ? '/admin/doctors' : '/admin/staff');
+        showToast('Doctor added successfully!', 'success');
+        router.push('/admin/doctors');
       } else {
         const error = await response.json();
-        showToast(error.error || 'Failed to add staff member', 'error');
+        showToast(error.error || 'Failed to add doctor', 'error');
       }
     } catch (error) {
-      showToast('Error adding staff member', 'error');
+      showToast('Error adding doctor', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -106,19 +75,19 @@ function AddStaffContent() {
   return (
     <div className="max-w-2xl mx-auto px-8 py-12">
       <nav className="flex items-center gap-2 mb-8 text-xs font-semibold text-slate-400 uppercase tracking-widest">
-        <Link href={formData.role === 'doctor' ? '/admin/doctors' : '/admin/staff'} className="hover:text-primary">
-          {formData.role === 'doctor' ? 'Doctors' : 'Staff Management'}
+        <Link href="/admin/doctors" className="hover:text-primary">
+          Doctors
         </Link>
         <span className="material-symbols-outlined text-sm">chevron_right</span>
-        <span className="text-primary">{pageTitle}</span>
+        <span className="text-primary">Add Doctor</span>
       </nav>
 
       <div className="mb-8">
         <h2 className="text-3xl font-bold tracking-tight text-gray-900 mb-2">
-          {pageTitle}
+          Add Doctor
         </h2>
         <p className="text-gray-500">
-          Create a new {formData.role} account. They will use these credentials to login.
+          Create a new doctor account. They will use these credentials to login.
         </p>
       </div>
 
@@ -166,57 +135,21 @@ function AddStaffContent() {
             />
           </div>
 
-          {formData.role === 'doctor' ? (
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Department
-              </label>
-              <select
-                required
-                value={formData.department}
-                onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none appearance-none bg-white"
-              >
-                <option value="">Select Department</option>
-                {getDepartmentsForRole().map(dept => (
-                  <option key={dept} value={dept}>{dept}</option>
-                ))}
-              </select>
-            </div>
-          ) : formData.role === 'medical' ? (
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Department
-              </label>
-              <select
-                required
-                value={formData.department}
-                onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none appearance-none bg-white"
-              >
-                <option value="">Select Department</option>
-                {getDepartmentsForRole().map(dept => (
-                  <option key={dept} value={dept}>{dept}</option>
-                ))}
-              </select>
-            </div>
-          ) : formData.role === 'staff' ? (
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Department
-              </label>
-              <select
-                required
-                value={formData.department}
-                onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none appearance-none bg-white"
-              >
-                <option value="">Select Department</option>
-                <option value="Reception">Reception</option>
-                <option value="Administration">Administration</option>
-              </select>
-            </div>
-          ) : null}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Department
+            </label>
+            <select
+              required
+              value={formData.department}
+              onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none appearance-none bg-white"
+            >
+              {departments.map(dept => (
+                <option key={dept} value={dept}>{dept}</option>
+              ))}
+            </select>
+          </div>
 
           <div className="border-t border-gray-100 pt-6">
             <h3 className="text-sm font-semibold text-gray-700 mb-4">Login Credentials</h3>
@@ -256,7 +189,7 @@ function AddStaffContent() {
 
           <div className="flex gap-4 pt-4">
             <Link
-              href="/admin/staff"
+              href="/admin/doctors"
               className="flex-1 px-6 py-3 text-center border border-gray-200 rounded-xl font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
             >
               Cancel
@@ -271,7 +204,7 @@ function AddStaffContent() {
               ) : (
                 <>
                   <span className="material-symbols-outlined">person_add</span>
-                  Add Staff
+                  Add Doctor
                 </>
               )}
             </button>
@@ -279,17 +212,5 @@ function AddStaffContent() {
         </form>
       </div>
     </div>
-  );
-}
-
-export default function AddStaffPage() {
-  return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center h-64">
-        <span className="material-symbols-outlined text-4xl text-gray-300 animate-spin">progress_activity</span>
-      </div>
-    }>
-      <AddStaffContent />
-    </Suspense>
   );
 }

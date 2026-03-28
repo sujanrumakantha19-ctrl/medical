@@ -33,10 +33,14 @@ export default function AdminDashboard() {
       const response = await fetch('/api/dashboard');
       const result = await response.json();
       
+      console.log('Dashboard API response:', result);
+      
       if (result.success) {
         setData(result.stats);
-        setRecentPatients(result.recentPatients);
-        setTodayAppointments(result.todayAppointmentsList);
+        setRecentPatients(result.recentPatients || []);
+        setTodayAppointments(result.todayAppointmentsList || []);
+      } else {
+        console.error('Dashboard API error:', result.error);
       }
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
@@ -58,17 +62,66 @@ export default function AdminDashboard() {
   };
 
   const handleExportData = () => {
-    showToast('Exporting dashboard data...', 'info');
-    setTimeout(() => {
+    if (!data) return;
+    
+    showToast('Preparing dashboard export...', 'info');
+    
+    try {
+      const headers = ['Metric', 'Value'];
+      const rows = [
+        ['Total Patients', data.totalPatients],
+        ['Today Appointments', data.todayAppointments],
+        ['Total Staff', data.totalStaff],
+        ['Monthly Revenue', data.monthlyRevenue],
+        ['Outstanding Balance', data.outstandingBalance]
+      ];
+      
+      const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `dashboard_export_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
       showToast('Dashboard data exported successfully!', 'success');
-    }, 1500);
+    } catch (error) {
+      showToast('Failed to export data', 'error');
+    }
   };
 
   const handleDownloadReport = () => {
+    if (!data) return;
+    
     showToast('Generating logistics report...', 'info');
-    setTimeout(() => {
+    
+    try {
+      const headers = ['Department', 'Occupancy', 'Capacity', 'Status'];
+      const rows = data.departments.map(dept => [
+        dept.name,
+        dept.occupancy,
+        dept.capacity,
+        `${Math.round((dept.occupancy / dept.capacity) * 100)}%`
+      ]);
+      
+      const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `hospital_report_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
       showToast('Report downloaded successfully!', 'success');
-    }, 2000);
+    } catch (error) {
+      showToast('Failed to generate report', 'error');
+    }
   };
 
   const formatCurrency = (amount: number) => {

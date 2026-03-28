@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/shared/toast';
+import { FormattedDate } from '@/components/ui/formatted-date';
 
 export default function AppointmentsPage() {
   const { showToast } = useToast();
@@ -176,13 +177,14 @@ export default function AppointmentsPage() {
           <div className="flex items-center gap-4 flex-1">
             <div className="relative flex-1 max-w-sm">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">search</span>
-              <input
-                className="w-full bg-white border border-gray-200 rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Search patient or doctor..."
-                type="text"
-                value={searchTerm}
-                onChange={(e) => { setSearchTerm(e.target.value); setPagination(p => ({ ...p, page: 1 })); }}
-              />
+                <input
+                  className="w-full bg-white border border-gray-200 rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Search patient or doctor..."
+                  type="text"
+                  aria-label="Search appointments by patient or doctor name"
+                  value={searchTerm}
+                  onChange={(e) => { setSearchTerm(e.target.value); setPagination(p => ({ ...p, page: 1 })); }}
+                />
             </div>
             <input
               type="date"
@@ -249,7 +251,7 @@ export default function AppointmentsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <p className="text-sm font-medium text-gray-900">
-                        {new Date(apt.date).toLocaleDateString()}
+                        <FormattedDate date={apt.date} />
                       </p>
                       <p className="text-xs text-gray-500">{apt.time}</p>
                     </td>
@@ -386,6 +388,7 @@ export default function AppointmentsPage() {
                   <input
                     type="date"
                     className="w-full bg-gray-100 border-none rounded-xl px-4 py-3 text-gray-900"
+                    min={new Date().toISOString().split('T')[0]}
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                     required

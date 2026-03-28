@@ -11,6 +11,11 @@ const navItems = [
     icon: 'dashboard',
   },
   {
+    label: 'Doctors',
+    href: '/admin/doctors',
+    icon: 'local_hospital',
+  },
+  {
     label: 'Staff Management',
     href: '/admin/staff',
     icon: 'badge',
@@ -94,13 +99,16 @@ export function Sidebar() {
           <span className="material-symbols-outlined text-lg">contact_support</span>
           <span className="text-sm font-medium">Support</span>
         </Link>
-        <Link
-          href="/login"
-          className="flex items-center gap-3 text-gray-600 px-3 py-2 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+        <button
+          onClick={async () => {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            window.location.href = '/login';
+          }}
+          className="w-full text-left flex items-center gap-3 text-gray-600 px-3 py-2 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
         >
           <span className="material-symbols-outlined text-lg">logout</span>
           <span className="text-sm font-medium">Logout</span>
-        </Link>
+        </button>
       </div>
     </aside>
   );

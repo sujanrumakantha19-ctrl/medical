@@ -160,12 +160,13 @@ export default function LoginPage() {
         return;
       }
 
-      // Store user info in localStorage
-      localStorage.setItem('user', JSON.stringify(data.user));
-
       // Redirect based on role
       if (data.user.role === 'admin') {
         router.push('/admin');
+      } else if (data.user.role === 'doctor') {
+        router.push('/doctor');
+      } else if (data.user.role === 'medical') {
+        router.push('/medical');
       } else {
         router.push('/staff');
       }

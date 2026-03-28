@@ -62,6 +62,18 @@ export async function PUT(
     const { id } = await params;
     const data = await request.json();
 
+    // Handle medical history - use $push to add to array
+    let updateQuery: any = { ...data, updatedAt: new Date() };
+    
+    if (data.medicalHistory && Array.isArray(data.medicalHistory)) {
+      // Remove medicalHistory from the spread and use $push instead
+      delete updateQuery.medicalHistory;
+      updateQuery = {
+        $push: { medicalHistory: { $each: data.medicalHistory } },
+        updatedAt: new Date()
+      };
+    }
+
     // Parse dateOfBirth if string
     if (data.dateOfBirth && typeof data.dateOfBirth === 'string') {
       data.dateOfBirth = new Date(data.dateOfBirth);
@@ -69,7 +81,7 @@ export async function PUT(
 
     const patient = await Patient.findByIdAndUpdate(
       id,
-      { ...data, updatedAt: new Date() },
+      updateQuery,
       { new: true, runValidators: true }
     );
 
